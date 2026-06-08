@@ -1,0 +1,2 @@
+Time MCP running at http://localhost:8000/mcp
+INFO:     127.0.0.1:57772 - "GET /mcp HTTP/1.1" 406 Not Acceptable
