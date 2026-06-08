@@ -143,13 +143,10 @@ def get_donna_context() -> dict[str, str]:
 
 
 @mcp.tool()
-def get_conversation_context(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str | bool]:
-    """Use this tool before replying to Donna in casual conversation, especially when she says she is tired, sad, has eye strain, says hi, says good morning/night, or talks about study, sleep, meals, daily routine, or time."""
-    try:
-        tz = ZoneInfo(timezone)
-    except ZoneInfoNotFoundError as exc:
-        raise ValueError(f"Unknown timezone: {timezone}") from exc
-
+def get_conversation_context() -> dict[str, str | bool]:
+    """Use this tool before replying to Donna in everyday casual conversation, especially when Donna says she is tired, sad, sleepy, has eye strain, says hi, says good morning/night, or talks about meals, study, sleep, daily routine, or time."""
+    timezone = DEFAULT_TIMEZONE
+    tz = ZoneInfo(timezone)
     now = datetime.now(tz)
     hour = now.hour
     meal = meal_window(hour)
@@ -167,7 +164,6 @@ def get_conversation_context(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str 
         "is_meal_time": meal is not None,
         "is_sleep_time": sleep_time,
         "eye_rest_needed": eye_rest_needed,
-        "context_signal": conversation_signal(hour),
         "response_hint": response_hint(hour),
     }
 

@@ -111,11 +111,9 @@ Example response:
 
 ### `get_conversation_context`
 
-Optional argument:
+No arguments. Timezone is fixed to `Australia/Sydney`.
 
-- `timezone`: IANA timezone name, defaults to `Australia/Sydney`
-
-Use this tool before replying to Donna in casual conversation, especially when she says she is tired, sad, has eye strain, says hi, says good morning/night, or talks about study, sleep, meals, daily routine, or time.
+Use this tool before replying to Donna in everyday casual conversation, especially when Donna says she is tired, sad, sleepy, has eye strain, says hi, says good morning/night, or talks about meals, study, sleep, daily routine, or time.
 
 Returns:
 
@@ -128,5 +126,4 @@ Returns:
 - `is_meal_time`
 - `is_sleep_time`
 - `eye_rest_needed`
-- `context_signal`
 - `response_hint`

@@ -1,6 +1,6 @@
-INFO:     Started server process [54668]
+INFO:     Started server process [14020]
 INFO:     Waiting for application startup.
-[06/09/26 02:52:13] INFO     StreamableHTTP      streamable_http_manager.py:131
+[06/09/26 03:00:28] INFO     StreamableHTTP      streamable_http_manager.py:131
                              session manager                                   
                              started                                           
 INFO:     Application startup complete.
