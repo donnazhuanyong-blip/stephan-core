@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -6,7 +7,7 @@ from mcp.server.fastmcp import FastMCP
 
 DEFAULT_TIMEZONE = "Australia/Sydney"
 HOST = "0.0.0.0"
-PORT = 8000
+PORT = int(os.environ.get("PORT", "8000"))
 MCP_PATH = "/mcp"
 
 mcp = FastMCP(
@@ -27,9 +28,37 @@ def period_label(hour: int) -> str:
     return "night"
 
 
-@mcp.tool()
-def get_current_time(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str]:
-    """Return the current local date and time for a timezone."""
+def sleep_advice(hour: int) -> str:
+    if 0 <= hour < 5:
+        return "It is very late in Sydney. Donna should wind down and prioritize sleep now."
+    if 5 <= hour < 8:
+        return "It is early morning. Donna should wake gently, get light, and avoid rushing if sleep was short."
+    if 8 <= hour < 21:
+        return "It is daytime or early evening. Donna should protect tonight's sleep by avoiding very late caffeine and planning a reasonable bedtime."
+    return "It is late evening. Donna should start winding down and avoid pushing study or screen time too far into the night."
+
+
+def meal_advice(hour: int) -> str:
+    if 5 <= hour < 10:
+        return "Good time for breakfast or water if Donna has not eaten yet."
+    if 10 <= hour < 12:
+        return "A light snack may help if Donna is hungry before lunch."
+    if 12 <= hour < 15:
+        return "Good time for lunch and hydration."
+    if 15 <= hour < 18:
+        return "A small snack or water break may help maintain focus."
+    if 18 <= hour < 21:
+        return "Good time for dinner, ideally not too heavy if bedtime is soon."
+    return "It is late. Donna should avoid a heavy meal; water or a small gentle snack is better if needed."
+
+
+def eye_rest_advice(hour: int) -> str:
+    if hour >= 22 or hour < 5:
+        return "Late night screen use is harder on the eyes. Donna should dim screens, reduce brightness, and take a real break if possible."
+    return "For long screen use, Donna should use regular eye breaks, look into the distance, blink often, and adjust brightness."
+
+
+def current_time_payload(timezone: str) -> dict[str, str]:
     try:
         tz = ZoneInfo(timezone)
     except ZoneInfoNotFoundError as exc:
@@ -45,6 +74,28 @@ def get_current_time(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str]:
     }
 
 
+@mcp.tool()
+def get_current_time(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str]:
+    """Return the current local date, time, weekday, timezone, and period label for a requested IANA timezone."""
+    return current_time_payload(timezone)
+
+
+@mcp.tool()
+def get_donna_context() -> dict[str, str]:
+    """Use this tool whenever replying to Donna in casual conversation, especially when the reply may depend on time, sleep, meals, study, eye strain, weather, or daily routine. This tool returns Donna's current Sydney date/time context plus practical sleep, meal, and eye-rest advice."""
+    payload = current_time_payload(DEFAULT_TIMEZONE)
+    hour = datetime.now(ZoneInfo(DEFAULT_TIMEZONE)).hour
+    payload.update(
+        {
+            "sleep_advice": sleep_advice(hour),
+            "meal_advice": meal_advice(hour),
+            "eye_rest_advice": eye_rest_advice(hour),
+            "preferred_name": "Donna",
+        }
+    )
+    return payload
+
+
 if __name__ == "__main__":
-    print("Time MCP running at http://localhost:8000/mcp", flush=True)
+    print(f"Time MCP running at http://localhost:{PORT}/mcp", flush=True)
     mcp.run(transport="streamable-http")
