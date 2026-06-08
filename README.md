@@ -1,9 +1,10 @@
 # ChatGPT Developer Mode MCP Time Server
 
-Minimal Python FastMCP server using the official `mcp` Python SDK and exposing two read-only tools:
+Minimal Python FastMCP server using the official `mcp` Python SDK and exposing read-only tools:
 
 - `get_current_time`
 - `get_donna_context`
+- `get_conversation_context`
 
 The tools return:
 
@@ -13,6 +14,7 @@ The tools return:
 - timezone
 - short period label: `morning`, `afternoon`, `evening`, or `night`
 - Donna-specific sleep, meal, and eye-rest advice from `get_donna_context`
+- Donna's everyday chat timing signals from `get_conversation_context`
 
 Default timezone: `Australia/Sydney`.
 
@@ -106,3 +108,25 @@ Example response:
   "preferred_name": "Donna"
 }
 ```
+
+### `get_conversation_context`
+
+Optional argument:
+
+- `timezone`: IANA timezone name, defaults to `Australia/Sydney`
+
+Use this tool before replying to Donna in casual conversation, especially when she says she is tired, sad, has eye strain, says hi, says good morning/night, or talks about study, sleep, meals, daily routine, or time.
+
+Returns:
+
+- `current_time`
+- `current_date`
+- `weekday`
+- `timezone`
+- `period`
+- `is_late_night`
+- `is_meal_time`
+- `is_sleep_time`
+- `eye_rest_needed`
+- `context_signal`
+- `response_hint`

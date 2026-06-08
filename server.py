@@ -58,6 +58,52 @@ def eye_rest_advice(hour: int) -> str:
     return "For long screen use, Donna should use regular eye breaks, look into the distance, blink often, and adjust brightness."
 
 
+def is_late_night(hour: int) -> bool:
+    return 0 <= hour < 5
+
+
+def is_sleep_time(hour: int) -> bool:
+    return hour >= 23 or hour < 5
+
+
+def meal_window(hour: int) -> str | None:
+    if 7 <= hour < 10:
+        return "breakfast"
+    if 12 <= hour < 14:
+        return "lunch"
+    if 18 <= hour < 20:
+        return "dinner"
+    return None
+
+
+def conversation_signal(hour: int) -> str:
+    if is_late_night(hour):
+        return "late_night_care"
+    if is_sleep_time(hour):
+        return "sleep_wind_down"
+    meal = meal_window(hour)
+    if meal:
+        return f"{meal}_time"
+    if hour >= 20:
+        return "evening_routine"
+    if 5 <= hour < 7:
+        return "early_morning"
+    return "daytime_check_in"
+
+
+def response_hint(hour: int) -> str:
+    if is_late_night(hour):
+        return "Donna may need a softer, shorter reply that acknowledges tiredness and gently encourages sleep."
+    if is_sleep_time(hour):
+        return "Donna may be winding down; keep the reply calm and avoid pushing demanding tasks."
+    meal = meal_window(hour)
+    if meal:
+        return f"It is {meal} time in Sydney; a casual reply can naturally check whether Donna has eaten or had water."
+    if hour >= 20:
+        return "It is evening in Sydney; a reply can be warm, low-pressure, and mindful of rest."
+    return "Use a natural casual tone while staying aware of Donna's day, study, meals, eyes, and routine."
+
+
 def current_time_payload(timezone: str) -> dict[str, str]:
     try:
         tz = ZoneInfo(timezone)
@@ -94,6 +140,36 @@ def get_donna_context() -> dict[str, str]:
         }
     )
     return payload
+
+
+@mcp.tool()
+def get_conversation_context(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str | bool]:
+    """Use this tool before replying to Donna in casual conversation, especially when she says she is tired, sad, has eye strain, says hi, says good morning/night, or talks about study, sleep, meals, daily routine, or time."""
+    try:
+        tz = ZoneInfo(timezone)
+    except ZoneInfoNotFoundError as exc:
+        raise ValueError(f"Unknown timezone: {timezone}") from exc
+
+    now = datetime.now(tz)
+    hour = now.hour
+    meal = meal_window(hour)
+    late_night = is_late_night(hour)
+    sleep_time = is_sleep_time(hour)
+    eye_rest_needed = hour >= 21 or late_night
+
+    return {
+        "current_time": now.strftime("%H:%M:%S"),
+        "current_date": now.strftime("%Y-%m-%d"),
+        "weekday": now.strftime("%A"),
+        "timezone": timezone,
+        "period": period_label(hour),
+        "is_late_night": late_night,
+        "is_meal_time": meal is not None,
+        "is_sleep_time": sleep_time,
+        "eye_rest_needed": eye_rest_needed,
+        "context_signal": conversation_signal(hour),
+        "response_hint": response_hint(hour),
+    }
 
 
 if __name__ == "__main__":
