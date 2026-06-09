@@ -1,9 +1,8 @@
 # ChatGPT Developer Mode MCP Time Server
 
-Minimal Python FastMCP server using the official `mcp` Python SDK and exposing read-only tools:
+Minimal Python FastMCP server using the official `mcp` Python SDK and exposing two read-only tools:
 
 - `get_current_time`
-- `get_donna_context`
 - `get_conversation_context`
 
 The tools return:
@@ -13,8 +12,7 @@ The tools return:
 - weekday
 - timezone
 - short period label: `morning`, `afternoon`, `evening`, or `night`
-- Donna-specific sleep, meal, and eye-rest advice from `get_donna_context`
-- Donna's everyday chat timing signals from `get_conversation_context`
+- compact timing signals from `get_conversation_context`
 
 Default timezone: `Australia/Sydney`.
 
@@ -87,40 +85,15 @@ Example response:
 }
 ```
 
-### `get_donna_context`
-
-No arguments.
-
-ChatGPT should use `get_donna_context` whenever replying to Donna in casual conversation, especially when the reply may depend on time, sleep, meals, study, eye strain, weather, or daily routine.
-
-Example response:
-
-```json
-{
-  "date": "2026-06-09",
-  "time": "01:15:00",
-  "weekday": "Tuesday",
-  "timezone": "Australia/Sydney",
-  "period": "night",
-  "sleep_advice": "It is very late in Sydney. Donna should wind down and prioritize sleep now.",
-  "meal_advice": "It is late. Donna should avoid a heavy meal; water or a small gentle snack is better if needed.",
-  "eye_rest_advice": "Late night screen use is harder on the eyes. Donna should dim screens, reduce brightness, and take a real break if possible.",
-  "preferred_name": "Donna"
-}
-```
-
 ### `get_conversation_context`
 
 No arguments. Timezone is fixed to `Australia/Sydney`.
 
-Use this tool before replying to Donna in everyday casual conversation, especially when Donna says she is tired, sad, sleepy, has eye strain, says hi, says good morning/night, or talks about meals, study, sleep, daily routine, or time.
+Use this tool only when Donna's message clearly depends on local time, daily routine, sleep, meals, eye strain, study schedule, weather, or date context. Do not use it for simple affection, jokes, short emotional replies, or casual messages unless Donna mentions tiredness, sleep, eyes, meals, study, morning/night, or asks about time/date.
 
 Returns:
 
 - `current_time`
-- `current_date`
-- `weekday`
-- `timezone`
 - `period`
 - `is_late_night`
 - `is_meal_time`

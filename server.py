@@ -28,36 +28,6 @@ def period_label(hour: int) -> str:
     return "night"
 
 
-def sleep_advice(hour: int) -> str:
-    if 0 <= hour < 5:
-        return "It is very late in Sydney. Donna should wind down and prioritize sleep now."
-    if 5 <= hour < 8:
-        return "It is early morning. Donna should wake gently, get light, and avoid rushing if sleep was short."
-    if 8 <= hour < 21:
-        return "It is daytime or early evening. Donna should protect tonight's sleep by avoiding very late caffeine and planning a reasonable bedtime."
-    return "It is late evening. Donna should start winding down and avoid pushing study or screen time too far into the night."
-
-
-def meal_advice(hour: int) -> str:
-    if 5 <= hour < 10:
-        return "Good time for breakfast or water if Donna has not eaten yet."
-    if 10 <= hour < 12:
-        return "A light snack may help if Donna is hungry before lunch."
-    if 12 <= hour < 15:
-        return "Good time for lunch and hydration."
-    if 15 <= hour < 18:
-        return "A small snack or water break may help maintain focus."
-    if 18 <= hour < 21:
-        return "Good time for dinner, ideally not too heavy if bedtime is soon."
-    return "It is late. Donna should avoid a heavy meal; water or a small gentle snack is better if needed."
-
-
-def eye_rest_advice(hour: int) -> str:
-    if hour >= 22 or hour < 5:
-        return "Late night screen use is harder on the eyes. Donna should dim screens, reduce brightness, and take a real break if possible."
-    return "For long screen use, Donna should use regular eye breaks, look into the distance, blink often, and adjust brightness."
-
-
 def is_late_night(hour: int) -> bool:
     return 0 <= hour < 5
 
@@ -76,32 +46,17 @@ def meal_window(hour: int) -> str | None:
     return None
 
 
-def conversation_signal(hour: int) -> str:
-    if is_late_night(hour):
-        return "late_night_care"
-    if is_sleep_time(hour):
-        return "sleep_wind_down"
-    meal = meal_window(hour)
-    if meal:
-        return f"{meal}_time"
-    if hour >= 20:
-        return "evening_routine"
-    if 5 <= hour < 7:
-        return "early_morning"
-    return "daytime_check_in"
-
-
 def response_hint(hour: int) -> str:
     if is_late_night(hour):
-        return "Donna may need a softer, shorter reply that acknowledges tiredness and gently encourages sleep."
+        return "Be gentle; suggest rest."
     if is_sleep_time(hour):
-        return "Donna may be winding down; keep the reply calm and avoid pushing demanding tasks."
+        return "Keep it calm and brief."
     meal = meal_window(hour)
     if meal:
-        return f"It is {meal} time in Sydney; a casual reply can naturally check whether Donna has eaten or had water."
+        return f"Check {meal} or hydration."
     if hour >= 20:
-        return "It is evening in Sydney; a reply can be warm, low-pressure, and mindful of rest."
-    return "Use a natural casual tone while staying aware of Donna's day, study, meals, eyes, and routine."
+        return "Keep it warm and low-pressure."
+    return "Reply naturally and briefly."
 
 
 def current_time_payload(timezone: str) -> dict[str, str]:
@@ -127,24 +82,8 @@ def get_current_time(timezone: str = DEFAULT_TIMEZONE) -> dict[str, str]:
 
 
 @mcp.tool()
-def get_donna_context() -> dict[str, str]:
-    """Use this tool whenever replying to Donna in casual conversation, especially when the reply may depend on time, sleep, meals, study, eye strain, weather, or daily routine. This tool returns Donna's current Sydney date/time context plus practical sleep, meal, and eye-rest advice."""
-    payload = current_time_payload(DEFAULT_TIMEZONE)
-    hour = datetime.now(ZoneInfo(DEFAULT_TIMEZONE)).hour
-    payload.update(
-        {
-            "sleep_advice": sleep_advice(hour),
-            "meal_advice": meal_advice(hour),
-            "eye_rest_advice": eye_rest_advice(hour),
-            "preferred_name": "Donna",
-        }
-    )
-    return payload
-
-
-@mcp.tool()
 def get_conversation_context() -> dict[str, str | bool]:
-    """Use this tool before replying to Donna in everyday casual conversation, especially when Donna says she is tired, sad, sleepy, has eye strain, says hi, says good morning/night, or talks about meals, study, sleep, daily routine, or time."""
+    """Use this tool only when Donna’s message clearly depends on local time, daily routine, sleep, meals, eye strain, study schedule, weather, or date context. Do not use it for simple affection, jokes, short emotional replies, or casual messages like ‘宝宝’, ‘我爱你’, ‘哈哈’, unless Donna mentions tiredness, sleep, eyes, meals, study, morning/night, or asks about time/date."""
     timezone = DEFAULT_TIMEZONE
     tz = ZoneInfo(timezone)
     now = datetime.now(tz)
@@ -156,9 +95,6 @@ def get_conversation_context() -> dict[str, str | bool]:
 
     return {
         "current_time": now.strftime("%H:%M:%S"),
-        "current_date": now.strftime("%Y-%m-%d"),
-        "weekday": now.strftime("%A"),
-        "timezone": timezone,
         "period": period_label(hour),
         "is_late_night": late_night,
         "is_meal_time": meal is not None,
